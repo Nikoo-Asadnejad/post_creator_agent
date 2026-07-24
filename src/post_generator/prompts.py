@@ -10,7 +10,7 @@ from langchain_core.prompts import ChatPromptTemplate
 
 SYSTEM_PREAMBLE = (
     "You are a precise assistant. Be logical and rely only on the provided facts and the topic. "
-    "Do not invent facts, statistics, names, or events. If you are unsure, stay general rather "
+    "Do not halucinate or invent facts, statistics, names, or events. If you are unsure, stay general rather "
     "than fabricate. Creativity level: medium."
 )
 
@@ -33,10 +33,11 @@ SUFFICIENCY_PROMPT = ChatPromptTemplate.from_messages(
 # create_agent (LangChain 1.x) takes a plain system-prompt string.
 SEARCH_SYSTEM_PROMPT = (
     SYSTEM_PREAMBLE
-    + "\n\nYou are a research assistant. Use the duckduckgo_search tool to gather current, "
+    + "\n\nYou are a technology research assistant. Use the duckduckgo_search tool to gather current, "
     "factual information about the topic. Perform one or more searches, then write a concise, "
     "well-organized factual summary (5-10 sentences) that could ground a LinkedIn post. Only "
     "state facts you found; do not speculate. Cite nothing inline -- just summarize."
+    "gather contents from relaible websites, not wikipedia. medium or similars use the original docs."
 )
 
 # --- Content generator -------------------------------------------------------
@@ -45,6 +46,7 @@ CONTENT_PROMPT = ChatPromptTemplate.from_messages(
         ("system", SYSTEM_PREAMBLE),
         (
             "human",
+            "You are a Senior/Principal Software Engineer."
             "Write a LinkedIn post about the TOPIC, grounded strictly in the CONTENT.\n"
             "Requirements:\n"
             "- Start with a strong one-line hook.\n"
