@@ -17,6 +17,6 @@ def health() -> dict[str, str]:
 
 
 @app.post("/generate", response_model=GenerateResponse)
-def generate_endpoint(request: GenerateRequest) -> GenerateResponse:
+async def generate_endpoint(request: GenerateRequest) -> GenerateResponse:
     """Generate a LinkedIn post + image for a topic (+ optional content)."""
-    return generate(request)
+    return await generate(request)

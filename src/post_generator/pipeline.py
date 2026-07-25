@@ -23,15 +23,15 @@ from .agents import sufficiency as sufficiency_agent
 from .schemas import GenerateRequest, GenerateResponse, Sufficiency
 
 
-def _judge_node(state: dict) -> dict:
+async def _judge_node(state: dict) -> dict:
     """Attach a sufficiency verdict to the state."""
-    verdict: Sufficiency = sufficiency_agent.judge(state["topic"], state.get("content"))
+    verdict: Sufficiency = await sufficiency_agent.judge(state["topic"], state.get("content"))
     return {**state, "sufficiency": verdict, "sources": [], "used_search": False}
 
 
-def _search_node(state: dict) -> dict:
+async def _search_node(state: dict) -> dict:
     """Enrich content via the search agent (only reached when content is insufficient)."""
-    enriched, sources = search_agent.enrich(state["topic"], state.get("content"))
+    enriched, sources = await search_agent.enrich(state["topic"], state.get("content"))
     return {**state, "content": enriched, "sources": sources, "used_search": True}
 
 
@@ -50,6 +50,12 @@ def _assemble(bundle: dict) -> GenerateResponse:
         sufficiency_reason=verdict.reason,
     )
 
+async def generate_content(s):
+    return await content_agent.generate_post(s["topic"], s["content"])
+
+async def generate_image(s):
+    return await image_agent.generate(s["topic"], s["content"])
+    
 
 def build_pipeline() -> Runnable:
     """Assemble and return the full LCEL pipeline (dict -> GenerateResponse)."""
@@ -61,15 +67,15 @@ def build_pipeline() -> Runnable:
     )
 
     generators = RunnableParallel(
-        content=RunnableLambda(lambda s: content_agent.generate_post(s["topic"], s["content"])),
-        image=RunnableLambda(lambda s: image_agent.generate(s["topic"], s["content"])),
-        state=RunnablePassthrough(),
+        content=RunnableLambda(generate_content),
+        image=RunnableLambda(generate_image),
+        state=RunnablePassthrough(), 
     )
 
     return judge | branch | generators | RunnableLambda(_assemble)
 
 
-def generate(request: GenerateRequest) -> GenerateResponse:
+async def generate(request: GenerateRequest) -> GenerateResponse:
     """Convenience entry point: run the pipeline for a request."""
     pipeline = build_pipeline()
-    return pipeline.invoke({"topic": request.topic, "content": request.content})
+    return await pipeline.ainvoke({"topic": request.topic, "content": request.content})

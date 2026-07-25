@@ -12,7 +12,7 @@ from ..prompts import SUFFICIENCY_PROMPT
 from ..schemas import Sufficiency
 
 
-def judge(topic: str, content: str | None) -> Sufficiency:
+async def judge(topic: str, content: str | None) -> Sufficiency:
     """Return a Sufficiency verdict for (topic, content).
 
     Null / blank / very short content is judged insufficient without an LLM call. Otherwise an
@@ -29,4 +29,4 @@ def judge(topic: str, content: str | None) -> Sufficiency:
     llm = make_llm(temperature=settings.fact_temperature)
     structured = llm.with_structured_output(Sufficiency)
     chain = SUFFICIENCY_PROMPT | structured
-    return chain.invoke({"topic": topic, "content": text})
+    return await chain.ainvoke({"topic": topic, "content": text})

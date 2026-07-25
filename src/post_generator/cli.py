@@ -11,7 +11,7 @@ app = typer.Typer(add_completion=False, help="Generate a LinkedIn post + image f
 
 
 @app.command()
-def main(
+async def main(
     topic: str = typer.Option(..., "--topic", "-t", help="What the post is about."),
     content: str | None = typer.Option(
         None, "--content", "-c", help="Optional source material; searched if missing/insufficient."
@@ -19,7 +19,7 @@ def main(
     as_json: bool = typer.Option(False, "--json", help="Print the full result as JSON."),
 ) -> None:
     """Run the pipeline and print the result."""
-    result = generate(GenerateRequest(topic=topic, content=content))
+    result = await generate(GenerateRequest(topic=topic, content=content))
 
     if as_json:
         typer.echo(result.model_dump_json(indent=2))

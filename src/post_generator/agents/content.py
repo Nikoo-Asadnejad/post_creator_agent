@@ -9,9 +9,9 @@ from ..llm import make_llm
 from ..prompts import CONTENT_PROMPT
 
 
-def generate_post(topic: str, content: str) -> str:
+async def generate_post(topic: str, content: str) -> str:
     """Return a LinkedIn-ready post string grounded in `content`."""
     settings = get_settings()
     llm = make_llm(temperature=settings.gen_temperature)
     chain = CONTENT_PROMPT | llm | StrOutputParser()
-    return chain.invoke({"topic": topic, "content": content}).strip()
+    return (await chain.ainvoke({"topic": topic, "content": content})).strip()

@@ -29,12 +29,13 @@ def _slug(topic: str) -> str:
     return (s[:40] or "image")
 
 
-def build_prompt(topic: str, content: str) -> str:
+async def build_prompt(topic: str, content: str) -> str:
     """Use the LLM to produce a detailed image-generation prompt."""
     settings = get_settings()
     llm = make_llm(temperature=settings.gen_temperature)
     chain = IMAGE_PROMPT | llm | StrOutputParser()
-    return chain.invoke({"topic": topic, "content": content}).strip()
+    result = await chain.ainvoke({"topic": topic, "content": content})
+    return result.strip()
 
 
 def fetch_image(prompt: str, topic: str) -> tuple[str | None, str | None]:
@@ -54,8 +55,8 @@ def fetch_image(prompt: str, topic: str) -> tuple[str | None, str | None]:
         return None, None
 
 
-def generate(topic: str, content: str) -> Image:
+async def generate(topic: str, content: str) -> Image:
     """Produce an image prompt and (best-effort) a saved PNG."""
-    prompt = build_prompt(topic, content)
+    prompt = await build_prompt(topic, content)
     url, local_path = fetch_image(prompt, topic)
     return Image(prompt=prompt, url=url, local_path=local_path)

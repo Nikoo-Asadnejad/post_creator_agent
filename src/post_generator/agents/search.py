@@ -31,7 +31,7 @@ def _collect_queries(messages: list) -> list[str]:
     return list(dict.fromkeys(queries))  # de-duplicate, preserve order
 
 
-def enrich(topic: str, content: str | None) -> tuple[str, list[str]]:
+async def enrich(topic: str, content: str | None) -> tuple[str, list[str]]:
     """Research the topic and return (enriched_content, sources).
 
     On any failure, degrades to the original content (or a minimal note) so the pipeline can
@@ -44,7 +44,7 @@ def enrich(topic: str, content: str | None) -> tuple[str, list[str]]:
         agent = create_agent(model=llm, tools=[search_tool], system_prompt=SEARCH_SYSTEM_PROMPT)
 
         user_msg = f"TOPIC: {topic}\n\nExisting notes (may be empty): {content or ''}"
-        result = agent.invoke({"messages": [{"role": "user", "content": user_msg}]})
+        result = await agent.ainvoke({"messages": [{"role": "user", "content": user_msg}]})
         messages = result.get("messages", [])
 
         summary = (messages[-1].content if messages else "").strip()
