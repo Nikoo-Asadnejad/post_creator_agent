@@ -16,7 +16,7 @@ def test_health():
 
 
 def test_generate_returns_assembled_schema(monkeypatch):
-    def _fake_generate(request):
+    async def _fake_generate(request):
         return GenerateResponse(
             linkedin_post="hello post",
             image_prompt="an image",
