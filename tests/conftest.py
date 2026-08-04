@@ -13,11 +13,18 @@ def stub_generators(monkeypatch):
     from post_generator.agents import content as content_agent
     from post_generator.agents import image as image_agent
 
+    async def fake_generate_post(topic, content):
+        return f"POST[{topic}]::{content[:20]}"
+    
     monkeypatch.setattr(
-        content_agent, "generate_post", lambda topic, content: f"POST[{topic}]::{content[:20]}"
+        content_agent, "generate_post", fake_generate_post
     )
+    
+    async def fake_generate_image(topic, content):
+        return Image(prompt=f"IMG[{topic}]", url=None, local_path=None)
+    
     monkeypatch.setattr(
         image_agent,
         "generate",
-        lambda topic, content: Image(prompt=f"IMG[{topic}]", url=None, local_path=None),
+        fake_generate_image,
     )

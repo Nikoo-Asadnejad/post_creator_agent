@@ -10,17 +10,17 @@ from post_generator.schemas import Sufficiency
 
 
 @pytest.mark.parametrize("content", [None, "", "   ", "too short"])
-def test_blank_or_short_content_is_insufficient_without_llm(content, monkeypatch):
+async def test_blank_or_short_content_is_insufficient_without_llm(content, monkeypatch):
     # If the LLM factory is touched, fail loudly - short content must short-circuit.
     monkeypatch.setattr(
         sufficiency, "make_llm", lambda *a, **k: pytest.fail("LLM should not be called")
     )
-    verdict = sufficiency.judge("Some topic", content)
+    verdict = await sufficiency.judge("Some topic", content)
     assert verdict.enough is False
     assert verdict.reason
 
 
-def test_long_content_invokes_llm(monkeypatch):
+async def test_long_content_invokes_llm(monkeypatch):
     class _FakeLLM:
         def with_structured_output(self, _schema):
             # Chain is PROMPT | structured; return a Runnable that yields a verdict.
@@ -28,6 +28,6 @@ def test_long_content_invokes_llm(monkeypatch):
 
     monkeypatch.setattr(sufficiency, "make_llm", lambda *a, **k: _FakeLLM())
 
-    verdict = sufficiency.judge("Topic", "x" * 500)
+    verdict = await sufficiency.judge("Topic", "x" * 500)
     assert verdict.enough is True
     assert verdict.reason == "looks good"

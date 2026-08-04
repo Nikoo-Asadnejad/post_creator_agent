@@ -12,7 +12,7 @@ def _track_search(monkeypatch):
     """Patch the search agent to record whether it ran."""
     calls = {"n": 0}
 
-    def _fake_enrich(topic, content):
+    async def _fake_enrich(topic, content):
         calls["n"] += 1
         return f"ENRICHED::{topic}", ["https://example.com/q"]
 
@@ -20,13 +20,17 @@ def _track_search(monkeypatch):
     return calls
 
 
-def test_sufficient_content_skips_search(monkeypatch, stub_generators):
+async def test_sufficient_content_skips_search(monkeypatch, stub_generators):
+    
+    async def fake_judge(t, c):
+        return Sufficiency(enough=True, reason="ok")
+    
     monkeypatch.setattr(
-        sufficiency_agent, "judge", lambda t, c: Sufficiency(enough=True, reason="ok")
-    )
-    calls = _track_search(monkeypatch)
+        sufficiency_agent, "judge", fake_judge)
+    
+    calls =  _track_search(monkeypatch)
 
-    result = pipeline.generate(GenerateRequest(topic="AI", content="x" * 500))
+    result = await pipeline.generate(GenerateRequest(topic="AI", content="x" * 500))
 
     assert calls["n"] == 0
     assert result.used_search is False
@@ -35,13 +39,17 @@ def test_sufficient_content_skips_search(monkeypatch, stub_generators):
     assert result.image_prompt == "IMG[AI]"
 
 
-def test_insufficient_content_triggers_search(monkeypatch, stub_generators):
+async def test_insufficient_content_triggers_search(monkeypatch, stub_generators):
+    
+    async def fake_judge(t, c):
+        return Sufficiency(enough=False, reason="thin")
+    
     monkeypatch.setattr(
-        sufficiency_agent, "judge", lambda t, c: Sufficiency(enough=False, reason="thin")
-    )
-    calls = _track_search(monkeypatch)
+        sufficiency_agent, "judge", fake_judge)
+    
+    calls =  _track_search(monkeypatch)
 
-    result = pipeline.generate(GenerateRequest(topic="Quantum", content=None))
+    result = await pipeline.generate(GenerateRequest(topic="Quantum", content=None))
 
     assert calls["n"] == 1
     assert result.used_search is True
