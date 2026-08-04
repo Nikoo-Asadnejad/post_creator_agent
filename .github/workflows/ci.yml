@@ -13,7 +13,7 @@ env:
 jobs:
 
   test:
-    name : Install Dependencies and Run Tests
+    name : Run Tests
     runs-on: ubuntu-latest
 
     steps:
