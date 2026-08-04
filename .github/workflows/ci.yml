@@ -58,13 +58,6 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Build Docker image
-      run: |
-        docker build \
-         --file Dockerfile \
-         --tag ${{ env.DOCKER_IMAGE }}:pr-${{ github.event.pull_request.number }} \
-         .
-
     - name: Build and Push
       uses: docker/build-push-action@v6
       with:
