@@ -28,7 +28,7 @@ services:
   
 
   app:
-    image: ${DOCKER_REGISTRY}/post_creator:${IMAGE_TAG}
+    image: ${DOCKER_REGISTRY}/${DOCKER_USERNAME}/${APP_NAME}:${IMAGE_TAG}
    
     ports:
       - "8000:8000"
